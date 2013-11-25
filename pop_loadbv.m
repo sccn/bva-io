@@ -21,6 +21,16 @@
 %   EEG       - EEGLAB EEG structure
 %   com       - history string
 %
+% Note:
+%   Import "Brain Vision Data Exchange" format files with this function.
+%   Brain Vision Data Exchange files consist of a set of 3 files, a header
+%   file (.vhdr), a marker file (.vmrk), and a data file. Export from
+%   BrainVision Analyzer with "Generic Data" export. Select header and
+%   marker file for export (text format; XML format is not yet supported).
+%   Binary and text data formats, in both multiplexed and vectorized data
+%   orientation are supported. Binary data formats offer higher precision
+%   and faster file import.
+%
 % Author: Andreas Widmann & Arnaud Delorme, 2004-
 
 % Copyright (C) 2004 Andreas Widmann, University of Leipzig, widmann@uni-leipzig.de
