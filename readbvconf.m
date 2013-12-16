@@ -67,7 +67,7 @@ for iSection = 1:length(sectionArray) - 1
 
     % Fill structure with parameter value pairs
     switch fieldName
-        case {'commoninfos' 'binaryinfos'}
+        case {'commoninfos' 'binaryinfos' 'asciiinfos'}
             for line = sectionArray(iSection) + 1:sectionArray(iSection + 1) - 1
                 splitArray = strfind(raw{line}, '=');
                 CONF.(fieldName).(lower(raw{line}(1:splitArray(1) - 1))) = raw{line}(splitArray(1) + 1:end);
