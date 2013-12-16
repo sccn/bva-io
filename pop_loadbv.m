@@ -292,12 +292,23 @@ else % ASCII data
     tmpdata = zeros([hdr.commoninfos.numberofchannels, hdr.commoninfos.datapoints], 'single');
     fseek(IN, 0, 'bof');
     switch lower(hdr.commoninfos.dataorientation)
+
         case 'vectorized'
-            if chanlabels
+            if chanlabels || (isfield(hdr, 'asciiinfos') && isfield(hdr.asciiinfos, 'decimalsymbol') && ~strcmp(hdr.asciiinfos.decimalsymbol, '.')) % Read line by line
+ 
                 for iChan = 1:hdr.commoninfos.numberofchannels
-                    tmpchan = fscanf(IN, '%s', 1);
-                    tmpdata(iChan, :) = fscanf(IN, '%f', hdr.commoninfos.datapoints);
+                    tmpstr = fgetl(IN);
+                    if chanlabels
+                        [tmpchan, count, errmsg, nextindex] = sscanf(tmpstr, '%s', 1);
+                        tmpstr = tmpstr(nextindex:end);
+                    end
+                    if isfield(hdr, 'asciiinfos') && isfield(hdr.asciiinfos, 'decimalsymbol') && ~strcmp(hdr.asciiinfos.decimalsymbol, '.')
+                        tmpdata(iChan, :) = sscanf(regexprep(tmpstr, hdr.asciiinfos.decimalsymbol, '.'), '%f', inf);
+                    else
+                        tmpdata(iChan, :) = sscanf(tmpstr, '%f', inf);
+                    end
                 end
+                
             else
                 tmpdata = fscanf(IN, '%f', inf);
                 tmpdata = reshape(tmpdata, hdr.commoninfos.datapoints, hdr.commoninfos.numberofchannels)';
@@ -307,8 +318,15 @@ else % ASCII data
             if chanlabels
                 tmpchan = fgetl(IN);
             end
-            tmpdata = fscanf(IN, '%f', inf);
-            tmpdata = reshape(tmpdata, hdr.commoninfos.numberofchannels, hdr.commoninfos.datapoints);
+            if isfield(hdr, 'asciiinfos') && isfield(hdr.asciiinfos, 'decimalsymbol') && ~strcmp(hdr.asciiinfos.decimalsymbol, '.')  % Read line by line
+               for iPnt = 1:hdr.commoninfos.datapoints
+                    tmpstr = fgetl(IN);
+                    tmpdata(:, iPnt) = sscanf(regexprep(tmpstr, hdr.asciiinfos.decimalsymbol, '.'), '%f', inf);
+                end
+            else
+                tmpdata = fscanf(IN, '%f', inf);
+                tmpdata = reshape(tmpdata, hdr.commoninfos.numberofchannels, hdr.commoninfos.datapoints);
+            end
 
         otherwise
             error('Unknown data orientation')
