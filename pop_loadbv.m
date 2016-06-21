@@ -179,18 +179,12 @@ if IN == -1
         error(message)
     end;
 end
-if isfield(hdr.commoninfos, 'datapoints')    
-    if isempty(hdr.commoninfos.datapoints)
-        fseek(IN, 0, 'eof');
-        hdr.commoninfos.datapoints = ftell(IN) / (hdr.commoninfos.numberofchannels * bps);
-        fseek(IN, 0, 'bof');
-    else
-        hdr.commoninfos.datapoints = str2double(hdr.commoninfos.datapoints);
-    end;
-elseif strcmpi(hdr.commoninfos.dataformat, 'binary')
-    fseek(IN, 0, 'eof');
-    hdr.commoninfos.datapoints = ftell(IN) / (hdr.commoninfos.numberofchannels * bps);
-    fseek(IN, 0, 'bof');
+if isfield( hdr.commoninfos, 'datapoints' ) && ~isempty( hdr.commoninfos.datapoints ) && isnumeric( str2double( hdr.commoninfos.datapoints ) ) && str2double( hdr.commoninfos.datapoints ) > 0
+    hdr.commoninfos.datapoints = str2double(hdr.commoninfos.datapoints);
+elseif strcmpi( hdr.commoninfos.dataformat, 'binary' )
+    fseek( IN, 0, 'eof' );
+    hdr.commoninfos.datapoints = ftell( IN ) / ( hdr.commoninfos.numberofchannels * bps );
+    fseek( IN, 0, 'bof' );
 else
     hdr.commoninfos.datapoints = NaN;
 end
