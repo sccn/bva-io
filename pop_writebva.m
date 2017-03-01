@@ -141,6 +141,7 @@ if ~isempty(EEG.event)
     tmpevent = EEG.event;
     [tmp latorder ] = sort( [ tmpevent.latency ] );
     EEG.event = EEG.event(latorder);
+    tmpevent = tmpevent( latorder );
 
     % Recode boundary events
     % ----------------------
