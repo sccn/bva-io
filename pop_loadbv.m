@@ -32,6 +32,10 @@
 %   and faster file import.
 %
 % Author: Andreas Widmann & Arnaud Delorme, 2004-
+% Modified by Josh Koen on 2019
+%   - Add reference channel input (script only)
+%   - Update extraction of chanlocs structure (read in units and add
+%   referecen)
 
 % Copyright (C) 2004 Andreas Widmann, University of Leipzig, widmann@uni-leipzig.de
 %
@@ -53,7 +57,7 @@
 % Revision 1.5 2010/03/23 21:19:52 roy
 % added some lines so that the function can deal with the space lines in the ASCII multiplexed data file
 
-function [EEG, com] = pop_loadbv(path, hdrfile, srange, chans)
+function [EEG, com] = pop_loadbv(path, hdrfile, srange, chans, ref_chan, ref_ignore)
 
 com = '';
 EEG = [];
@@ -76,6 +80,18 @@ if nargin < 2
     if ~isempty(result{2}),
         chans = str2num(result{2});
     end
+end
+
+% Check new inputs
+if exist('ref_chan','var')
+    ref_chan = char(ref_chan);
+else
+    ref_chan = '';
+end
+if exist('ref_ignore','var')
+    ref_ignore = string(ref_ignore);
+else
+    ref_ignore = '';
 end
 
 % Header file
@@ -115,23 +131,43 @@ if any(chans < 1) || any(chans > hdr.commoninfos.numberofchannels)
     error('chans out of available channel range');
 end
 if isfield(hdr, 'channelinfos')
+    
+    % Handle reading in channels
     for chan = 1:length(chans)
-        try
-            [EEG.chanlocs(chan).labels, chanlocs(chan).ref, chanlocs(chan).scale, chanlocs(chan).unit] = strread(hdr.channelinfos{chans(chan)}, '%s%s%s%s', 1, 'delimiter', ',');
-        catch % Octave compatible code below
-            str  = hdr.channelinfos{chans(chan)};
-            [EEG.chanlocs(chan).labels str] = strtok(str, ',');
-            [chanlocs(chan).ref        str] = strtok(str, ',');
-            [chanlocs(chan).scale      str] = strtok(str, ',');
-            [chanlocs(chan).unit       str] = strtok(str, ',');
-        end;
-        EEG.chanlocs(chan).labels = char(EEG.chanlocs(chan).labels);
-        chanlocs(chan).scale = str2double(char(chanlocs(chan).scale));
-%             chanlocs(chan).unit = native2unicode(double(char(chanlocs(chan).scale)), 'UTF-8');
-%             EEG.chanlocs(chan).datachan = chans(chan);
+        % REplace string of ,, with , ,
+        this_string = strrep(hdr.channelinfos{chans(chan)},',,',', ,');
+        
+        % Split the string
+        info = strsplit(this_string,',');
+        
+        % Add first and last elements of info (these should always be
+        % present
+        EEG.chanlocs(chan).labels = char(info{1});
+        EEG.chanlocs(chan).ref   = char(info{2});
+        if strcmpi(EEG.chanlocs(chan).ref,' ')
+            EEG.chanlocs(chan).ref = '';
+        end
+        EEG.chanlocs(chan).scale = str2double(info{3});
+        EEG.chanlocs(chan).unit   = char(strrep(info{4},'Â',''));
+        
     end
-    if isempty([chanlocs.scale])
-        chanlocs = rmfield(chanlocs, 'scale');
+
+% Original code commented out        
+%         try
+%             [EEG.chanlocs(chan).labels, chanlocs(chan).ref, chanlocs(chan).scale, chanlocs(chan).unit] = strread(hdr.channelinfos{chans(chan)}, '%s%s%s%s', 1, 'delimiter', ',');
+%         catch % Octave compatible code below
+%             str  = hdr.channelinfos{chans(chan)};
+%             [EEG.chanlocs(chan).labels str] = strtok(str, ',');
+%             [chanlocs(chan).ref        str] = strtok(str, ',');
+%             [chanlocs(chan).scale      str] = strtok(str, ',');
+%             [chanlocs(chan).unit       str] = strtok(str, ',');
+%         end;
+%         EEG.chanlocs(chan).labels = char(EEG.chanlocs(chan).labels);
+%         chanlocs(chan).scale = str2double(char(chanlocs(chan).scale));
+% %             chanlocs(chan).unit = native2unicode(double(char(chanlocs(chan).scale)), 'UTF-8');
+%             EEG.chanlocs(chan).datachan = chans(chan);
+    if isempty([EEG.chanlocs.scale])
+        EEG.chanlocs = rmfield(EEG.chanlocs, 'scale');
     end
 end;
 %     [EEG.chanlocs.type] = deal([]);
@@ -419,5 +455,5 @@ catch
 end
 
 if nargout == 2
-    com = sprintf('EEG = pop_loadbv(''%s'', ''%s'', %s, %s);', path, hdrfile, mat2str(srange), mat2str(chans));
+    com = fprintf('EEG = pop_loadbv(''%s'', ''%s'', %s, %s);', path, hdrfile, mat2str(srange), mat2str(chans) );
 end
