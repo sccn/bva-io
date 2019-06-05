@@ -449,11 +449,29 @@ end
 
 EEG.ref = 'common';
 
+% Add BV .vhdr to EEG.etc.bv_vhdr
+fid = fopen(fullfile(path,hdrfile),'r');
+hdr_info = '';
+while ~feof(fid)
+    hdr_info = vertcat(hdr_info, {fgetl(fid)});
+end
+fclose(fid);
+EEG.etc.bv_vhdr_file = hdr_info;
+
+% Add BV .vmrk to EEG.etc.bv_vmrk_file
+fid = fopen(fullfile(path,strrep(hdrfile,'.vhdr','.vmrk')),'r');
+vmrk_info = '';
+while ~feof(fid)
+    vmrk_info = vertcat(vmrk_info, {fgetl(fid)});
+end
+fclose(fid);
+EEG.etc.bv_vmrk_file = vmrk_info;
+
 try
     EEG = eeg_checkset(EEG);
 catch
 end
 
 if nargout == 2
-    com = fprintf('EEG = pop_loadbv(''%s'', ''%s'', %s, %s);', path, hdrfile, mat2str(srange), mat2str(chans) );
+    com = sprintf('EEG = pop_loadbv(''%s'', ''%s'', %s, %s);', path, hdrfile, mat2str(srange), mat2str(chans) );
 end
