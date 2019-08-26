@@ -91,4 +91,40 @@ fclose('all');
 com = sprintf('pop_copybv( %s.vhdr, %s.vhdr );', ...
     fullfile(hdrpath,vhdr_file), fullfile(outputpath,outputfile) );
 
+function out_text = bv_text_catcher(in_text, DataFile, MarkerFile)
+    % bv_text_catcher() - checks information in a line of text from a .vhdr or
+    % .vmrk file for the DataFile= or MarkerFile= lines to update them
+    % appropriately.
+    %
+    % Usage:
+    %   >> bv_text_catcher(in_text,DataFile,MarkerFile);   % a window pops up
+    %   >> EEG = pop_writebva(EEG, filename);
+    %
+    % Inputs:
+    %   in_text    - line of text to evaluate for presence of 'DataFile=' or
+    %                'MarkerFile='
+    %   DataFile   - String for the new DataFile name to save in the .vhdr and
+    %                .vmrk files. should only be file name and extension (no
+    %                path).
+    %   MarkerFile- String for the new DataFile name to save in the .vhdr file.
+    %               Should only be file name and extension (no path).
+    
+    % Error Check
+    if ~ischar(in_text) || ~ischar(DataFile) || ~ischar(MarkerFile) || nargin < 3
+        error('bv_file_catcher requires string inputs for in_text, DataFile, and MarkerFile');
+    end
+    
+    
+    if all(ismember('DataFile=',in_text)) % DataFile replace
+        out_text = sprintf('DataFile=%s', DataFile);
+    elseif all(ismember('MarkerFile=', in_text)) % MarkerFile replace
+        out_text = sprintf('MarkerFile=%s', MarkerFile);
+    else % Otherwise simply pass it in
+        out_text = in_text;
+    end
+
+end
+
+
 end % of function
+
