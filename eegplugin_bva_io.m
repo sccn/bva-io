@@ -69,9 +69,11 @@ function vers = eegplugin_bva_io(fig, trystrs, catchstrs)
         comcnt2 = [ trystrs.no_check '[EEG LASTCOM] = pop_loadbva;' catchstrs.new_non_empty ];
     end;
     comcnt3 = [ trystrs.no_check 'LASTCOM = pop_writebva(EEG);'  catchstrs.add_to_hist ];
+    comcnt4 = [ trystrs.no_check 'LASTCOM = pop_copybv();' catchstrs.add_to_hist ];
                 
     % create menus
     % ------------
     uimenu( menui, 'label', 'From Brain Vis. Rec. .vhdr file',  'callback', comcnt1, 'separator', 'on' );
     uimenu( menui, 'label', 'From Brain Vis. Anal. Matlab file', 'callback', comcnt2 );
     uimenu( menuo, 'label', 'Write Brain Vis. exchange format file',  'callback', comcnt3, 'separator', 'on' );
+    uimenu( menuo, 'label', 'Copy and Rename Brain Vis. exchange files', 'callback', comcnt4 );
