@@ -77,7 +77,7 @@ disp('pop_copybv(): copying and updating marker file');
 while ~feof(vmrk_in)
     this_line = fgetl(vmrk_in);
     this_line = bv_text_catcher(this_line, DataFile, MarkerFile);
-    fwrite(vmrk_out,sprintf('%s\r',this_line));
+    fwrite(vmrk_out,sprintf('%s\n',this_line));
 end
 
 % Simply copy the .egg file
@@ -88,7 +88,7 @@ copyfile(fullfile(hdrpath, [vhdr_file '.eeg']), fullfile(outputpath, [outputfile
 fclose('all');
 
 % update com
-com = sprintf('pop_copybv( %s.vhdr, %s.vhdr );', ...
+com = sprintf('pop_copybv( ''%s.vhdr'', ''%s.vhdr'' );', ...
     fullfile(hdrpath,vhdr_file), fullfile(outputpath,outputfile) );
 
 function out_text = bv_text_catcher(in_text, DataFile, MarkerFile)
