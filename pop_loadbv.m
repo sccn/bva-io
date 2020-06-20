@@ -59,7 +59,7 @@ com = '';
 EEG = [];
 
 if nargin < 2
-    [hdrfile path] = uigetfile2('*.vhdr', 'Select Brain Vision vhdr-file - pop_loadbv()');
+    [hdrfile path] = uigetfile2({'*.vhdr';'*.ahdr'}, 'Select Brain Vision a/vhdr-file - pop_loadbv()');
     if hdrfile(1) == 0, return; end
 
     drawnow;
