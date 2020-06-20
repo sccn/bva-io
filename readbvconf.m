@@ -87,7 +87,7 @@ for iSection = 1:length(sectionArray) - 1
                 CONF.(fieldName)(str2double(raw{line}(3:splitArray(1) - 1))) = {raw{line}(splitArray(1) + 1:end)};
             end
             if strcmp(ext,'.ahdr')
-                CONF.(fieldName)(ahdrChannels) = 'test,,1,mV';
+                CONF.(fieldName)(ahdrChannels) = {'test,,1,mV'};
             end
         case {'coordinates'} % if ahdr add info on the fake channel
             for line = sectionArray(iSection) + 1:sectionArray(iSection + 1) - 1
@@ -95,7 +95,7 @@ for iSection = 1:length(sectionArray) - 1
                 CONF.(fieldName)(str2double(raw{line}(3:splitArray(1) - 1))) = {raw{line}(splitArray(1) + 1:end)};
             end
             if strcmp(ext,'.ahdr')
-                %TODO CHECK COORDINATES INFO
+                CONF.(fieldName)(ahdrChannels) = {'0,0,0'};
             end
         case {'markerinfos'} % Allow discontinuity for markers (but not channelinfos and coordinates!)
             for line = sectionArray(iSection) + 1:sectionArray(iSection + 1) - 1
