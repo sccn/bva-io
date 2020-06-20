@@ -1,5 +1,5 @@
 % eegplugin_bva_io() - EEGLAB plugin for importing Brainvision 
-%                         .vhdr data files.
+%                         .vhdr and .ahdr data files.
 %
 % Usage:
 %   >> eegplugin_bva_io(fig, trystrs, catchstrs);
@@ -73,7 +73,7 @@ function vers = eegplugin_bva_io(fig, trystrs, catchstrs)
                 
     % create menus
     % ------------
-    uimenu( menui, 'label', 'From Brain Vis. Rec. .vhdr file',  'callback', comcnt1, 'separator', 'on' );
+    uimenu( menui, 'label', 'From Brain Vis. Rec. .vhdr or .ahdr file',  'callback', comcnt1, 'separator', 'on' );
     uimenu( menui, 'label', 'From Brain Vis. Anal. Matlab file', 'callback', comcnt2 );
     uimenu( menuo, 'label', 'Write Brain Vis. exchange format file',  'callback', comcnt3, 'separator', 'on' );
     uimenu( menuo, 'label', 'Copy and Rename Brain Vis. exchange files', 'callback', comcnt4 );

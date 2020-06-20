@@ -80,7 +80,7 @@ while ~feof(vmrk_in)
     fwrite(vmrk_out,sprintf('%s\n',this_line));
 end
 
-% Simply copy the .egg file
+% Simply copy the .eeg file
 disp('pop_copybv(): copying data (.eeg) file');
 copyfile(fullfile(hdrpath, [vhdr_file '.eeg']), fullfile(outputpath, [outputfile '.eeg']));
         
