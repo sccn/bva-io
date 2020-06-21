@@ -1,13 +1,14 @@
 % pop_copybv - copy a Brain Vision file set and updates the appropriate
-% file names (DataFile and MarkerFile lines) in .vhdr and .vmrk files with
-% a new file name
+% file names (DataFile and MarkerFile lines) in .vhdr (or .ahdr) and .vmrk
+% (or .amrk) files with a new file name
 % 
 % Usage:
 %   >> [com] = pop_copybv();   % a window pops up for input file and output files
-%   >> [com] = pop_copybv(vhdr_file);   % a window pops up for outputfile
+%   >> [com] = pop_copybv(hdr_file);   % a window pops up for outputfile
+%   >> [com] = pop_copybv(hdr_file, outputfile);   % no window pops up
 %
 % Inputs:
-%   vhdr_file      - vdhr_file to copy
+%   hdr_file      - vdhr_file to copy
 %   outputfile     - new file name (including path if different than pwd,
 %                    extension is ignored, but best to use .vhdr)
 %
@@ -29,16 +30,16 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-function com = pop_copybv( vhdr_file, outputfile )
+function com = pop_copybv( hdr_file, outputfile )
 
 % initialize com
 com = '';
 
 % handle vhdr_file
 if nargin < 1
-    [vhdr_file, hdrpath] = uigetfile2('*.vhdr', 'Select Brain Vision vhdr-file - pop_copybv()');
-    if isempty( vhdr_file ), return; end
-    vhdr_file = fullfile(hdrpath,vhdr_file); % Remove extension
+    [hdr_file, hdrpath] = uigetfile2({'*.vhdr;*.ahdr'}, 'Select Brain Vision a/vhdr-file - pop_copybv()');
+    if isempty( hdr_file ), return; end
+    hdr_file = fullfile(hdrpath,hdr_file); % Remove extension
 end
 
 % Handle output file (Removes dot extension)
@@ -48,21 +49,31 @@ if nargin < 2
     outputfile = fullfile(outputpath,outputfile);
 end
 
-% Remove extensions
-[hdrpath, vhdr_file] = fileparts(vhdr_file); 
+% Determine extensions
+[hdrpath, hdr_file, hdr_extension] = fileparts(hdr_file); 
 [outputpath, outputfile] = fileparts(outputfile);
 
-% Open input vhdr and vmrk files for reading
-vhdr_in = fopen( fullfile(hdrpath, [vhdr_file '.vhdr']), 'r' );
-vmrk_in = fopen( fullfile(hdrpath, [vhdr_file '.vmrk']), 'r' );
+% Determine marker extension
+switch hdr_extension
+    case '.vhdr'
+        mrk_extension = '.vmrk';
+    case '.ahdr'
+        mrk_extension = '.amrk';
+    otherwise
+        error(['Only vhdr and ahdr files are handled: extension ' hdr_extension ' not recognized.'])
+end
+
+% Open input hdr and mrk files for reading
+vhdr_in = fopen( fullfile(hdrpath, [hdr_file hdr_extension]), 'r' );
+vmrk_in = fopen( fullfile(hdrpath, [hdr_file mrk_extension]), 'r' );
 
 % Open output paths for writing
-vhdr_out = fopen( fullfile(outputpath, [outputfile '.vhdr']), 'w' );
-vmrk_out = fopen( fullfile(outputpath, [outputfile '.vmrk']), 'w' );
+vhdr_out = fopen( fullfile(outputpath, [outputfile hdr_extension]), 'w' );
+vmrk_out = fopen( fullfile(outputpath, [outputfile mrk_extension]), 'w' );
 
 % File output names for .vhdr
 DataFile = [ outputfile '.eeg' ];
-MarkerFile = [ outputfile '.vmrk' ];
+MarkerFile = [ outputfile mrk_extension ];
 
 % Update header header
 disp('pop_copybv(): copying and updating header file');
@@ -82,14 +93,14 @@ end
 
 % Simply copy the .eeg file
 disp('pop_copybv(): copying data (.eeg) file');
-copyfile(fullfile(hdrpath, [vhdr_file '.eeg']), fullfile(outputpath, [outputfile '.eeg']));
+copyfile(fullfile(hdrpath, [hdr_file '.eeg']), fullfile(outputpath, [outputfile '.eeg']));
         
 % Close files
 fclose('all');
 
 % update com
-com = sprintf('pop_copybv( ''%s.vhdr'', ''%s.vhdr'' );', ...
-    fullfile(hdrpath,vhdr_file), fullfile(outputpath,outputfile) );
+com = sprintf('pop_copybv( ''%s'', ''%s'' );', ...
+    fullfile(hdrpath,hdr_file,hdr_extension), fullfile(outputpath,outputfile,hdr_extension) );
 
 function out_text = bv_text_catcher(in_text, DataFile, MarkerFile)
     % bv_text_catcher() - checks information in a line of text from a .vhdr or
