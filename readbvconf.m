@@ -37,9 +37,6 @@ if nargin < 2
     error('Not enough input arguments');
 end
 
-% Check extension
-[~,~,ext] = fileparts(filename);
-
 % Open and read file
 [IN, message] = fopen(fullfile(pathname, filename), 'r');
 if IN == -1
@@ -73,29 +70,16 @@ for iSection = 1:length(sectionArray) - 1
         case {'commoninfos' 'binaryinfos' 'asciiinfos'}
             for line = sectionArray(iSection) + 1:sectionArray(iSection + 1) - 1
                 splitArray = strfind(raw{line}, '=');
-                key = lower(raw{line}(1:splitArray(1) - 1));
-                value = raw{line}(splitArray(1) + 1:end);
-                if strcmp(key,'numberofchannels') && strcmp(ext,'.ahdr')
-                    ahdrChannels = str2double(value)+1;
-                    value = num2str(ahdrChannels);
+                if ~isvarname( lower(raw{line}(1:splitArray(1) - 1)) )
+                    warning( [ 'Non-standard-conforming line ''' raw{ line } ''' found. Skipping. Please report to author of exporting software.' ] )
+                else
+                    CONF.(fieldName).(lower(raw{line}(1:splitArray(1) - 1))) = raw{line}(splitArray(1) + 1:end);
                 end
-                CONF.(fieldName).(key) = value;
             end
-        case {'channelinfos'} % if ahdr add info on the fake channel
+        case {'channelinfos' 'coordinates'}
             for line = sectionArray(iSection) + 1:sectionArray(iSection + 1) - 1
                 splitArray = strfind(raw{line}, '=');
                 CONF.(fieldName)(str2double(raw{line}(3:splitArray(1) - 1))) = {raw{line}(splitArray(1) + 1:end)};
-            end
-            if strcmp(ext,'.ahdr')
-                CONF.(fieldName)(ahdrChannels) = {'test,,1,mV'};
-            end
-        case {'coordinates'} % if ahdr add info on the fake channel
-            for line = sectionArray(iSection) + 1:sectionArray(iSection + 1) - 1
-                splitArray = strfind(raw{line}, '=');
-                CONF.(fieldName)(str2double(raw{line}(3:splitArray(1) - 1))) = {raw{line}(splitArray(1) + 1:end)};
-            end
-            if strcmp(ext,'.ahdr')
-                CONF.(fieldName)(ahdrChannels) = {'0,0,0'};
             end
         case {'markerinfos'} % Allow discontinuity for markers (but not channelinfos and coordinates!)
             for line = sectionArray(iSection) + 1:sectionArray(iSection + 1) - 1
@@ -110,4 +94,21 @@ for iSection = 1:length(sectionArray) - 1
         otherwise
             fprintf('Unrecognized entry: %s\n', fieldName);
     end
+end
+
+% Handle ahdr file type exceptions
+[ ~, ~, ext ] = fileparts( filename );
+if strcmp( ext, '.ahdr' )
+    
+    if ~isfield( CONF.commoninfos, 'numberofchannels' )
+        error( 'Common infos field numberofchannels required.' )
+    else
+        ahdrChan = str2double( CONF.commoninfos.numberofchannels ) + 1;
+        CONF.commoninfos.numberofchannels = num2str( ahdrChan );
+    end
+    
+    CONF.channelinfos(ahdrChan) = { 'test,,1,mV' };
+    
+    CONF.coordinates(ahdrChan) = { '0,0,0' };
+    
 end
