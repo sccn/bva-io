@@ -95,3 +95,20 @@ for iSection = 1:length(sectionArray) - 1
             fprintf('Unrecognized entry: %s\n', fieldName);
     end
 end
+
+% Handle ahdr file type exceptions
+[ ~, ~, ext ] = fileparts( filename );
+if strcmp( ext, '.ahdr' )
+    
+    if ~isfield( CONF.commoninfos, 'numberofchannels' )
+        error( 'Common infos field numberofchannels required.' )
+    else
+        ahdrChan = str2double( CONF.commoninfos.numberofchannels ) + 1;
+        CONF.commoninfos.numberofchannels = num2str( ahdrChan );
+    end
+    
+    CONF.channelinfos(ahdrChan) = { 'test,,1,mV' };
+    
+    CONF.coordinates(ahdrChan) = { '0,0,0' };
+    
+end

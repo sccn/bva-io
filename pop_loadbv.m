@@ -10,7 +10,7 @@
 %
 % Optional inputs:
 %   path      - path to files
-%   hdrfile   - name of Brain Vision vhdr-file (incl. extension)
+%   hdrfile   - name of Brain Vision vhdr- or ahdr-file (incl. extension)
 %   srange    - scalar first sample to read (up to end of file) or
 %               vector first and last sample to read (e.g., [7 42];
 %               default: all)
@@ -24,7 +24,7 @@
 % Note:
 %   Import "Brain Vision Data Exchange" format files with this function.
 %   Brain Vision Data Exchange files consist of a set of 3 files, a header
-%   file (.vhdr), a marker file (.vmrk), and a data file. Export from
+%   file (.vhdr or .ahdr), a marker file (.vmrk), and a data file. Export from
 %   BrainVision Analyzer with "Generic Data" export. Select header and
 %   marker file for export (text format; XML format is not yet supported).
 %   Binary and text data formats, in both multiplexed and vectorized data
@@ -59,7 +59,7 @@ com = '';
 EEG = [];
 
 if nargin < 2
-    [hdrfile path] = uigetfile2('*.vhdr', 'Select Brain Vision vhdr-file - pop_loadbv()');
+    [hdrfile path] = uigetfile2({'*.vhdr;*.ahdr'}, 'Select Brain Vision a/vhdr-file - pop_loadbv()');
     if hdrfile(1) == 0, return; end
 
     drawnow;
