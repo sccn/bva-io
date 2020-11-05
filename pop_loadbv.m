@@ -10,7 +10,7 @@
 %
 % Optional inputs:
 %   path      - path to files
-%   hdrfile   - name of Brain Vision vhdr- or ahdr-file (incl. extension)
+%   hdrfile   - name of Brain Vision vhdr-file (incl. extension)
 %   srange    - scalar first sample to read (up to end of file) or
 %               vector first and last sample to read (e.g., [7 42];
 %               default: all)
@@ -24,7 +24,7 @@
 % Note:
 %   Import "Brain Vision Data Exchange" format files with this function.
 %   Brain Vision Data Exchange files consist of a set of 3 files, a header
-%   file (.vhdr or .ahdr), a marker file (.vmrk), and a data file. Export from
+%   file (.vhdr), a marker file (.vmrk), and a data file. Export from
 %   BrainVision Analyzer with "Generic Data" export. Select header and
 %   marker file for export (text format; XML format is not yet supported).
 %   Binary and text data formats, in both multiplexed and vectorized data
@@ -59,7 +59,7 @@ com = '';
 EEG = [];
 
 if nargin < 2
-    [hdrfile path] = uigetfile2({'*.vhdr;*.ahdr'}, 'Select Brain Vision a/vhdr-file - pop_loadbv()');
+    [hdrfile, path] = uigetfile2('*.vhdr', 'Select Brain Vision vhdr-file - pop_loadbv()');
     if hdrfile(1) == 0, return; end
 
     drawnow;
@@ -70,10 +70,10 @@ if nargin < 2
               { 'style' 'edit' 'string' ''}};
     result = inputgui(uigeom, uilist, 'pophelp(''pop_loadbv'')', 'Load a Brain Vision Data Exchange format dataset');
     if isempty(result), return, end
-    if ~isempty(result{1}),
+    if ~isempty(result{1})
         srange = str2num(result{1});
     end
-    if ~isempty(result{2}),
+    if ~isempty(result{2})
         chans = str2num(result{2});
     end
 end
@@ -120,11 +120,11 @@ if isfield(hdr, 'channelinfos')
             [EEG.chanlocs(chan).labels, chanlocs(chan).ref, chanlocs(chan).scale, chanlocs(chan).unit] = strread(hdr.channelinfos{chans(chan)}, '%s%s%s%s', 1, 'delimiter', ',');
         catch % Octave compatible code below
             str  = hdr.channelinfos{chans(chan)};
-            [EEG.chanlocs(chan).labels str] = strtok(str, ',');
-            [chanlocs(chan).ref        str] = strtok(str, ',');
-            [chanlocs(chan).scale      str] = strtok(str, ',');
-            [chanlocs(chan).unit       str] = strtok(str, ',');
-        end;
+            [EEG.chanlocs(chan).labels, str] = strtok(str, ',');
+            [chanlocs(chan).ref,        str] = strtok(str, ',');
+            [chanlocs(chan).scale,      str] = strtok(str, ',');
+            [chanlocs(chan).unit,       str] = strtok(str, ',');
+        end
         EEG.chanlocs(chan).labels = char(EEG.chanlocs(chan).labels);
         chanlocs(chan).scale = str2double(char(chanlocs(chan).scale));
 %             chanlocs(chan).unit = native2unicode(double(char(chanlocs(chan).scale)), 'UTF-8');
@@ -133,7 +133,7 @@ if isfield(hdr, 'channelinfos')
     if isempty([chanlocs.scale])
         chanlocs = rmfield(chanlocs, 'scale');
     end
-end;
+end
 %     [EEG.chanlocs.type] = deal([]);
 
 % Coordinates
@@ -142,14 +142,14 @@ if isfield(hdr, 'coordinates')
     onenon0channel = 0;
     for chan = 1:length(chans)
         if ~isempty(hdr.coordinates{chans(chan)})
-            if ismatlab,
+            if ismatlab
                 [EEG.chanlocs(chan).sph_radius, theta, phi] = strread(hdr.coordinates{chans(chan)}, '%f%f%f', 'delimiter', ',');
             else
                 str  = hdr.coordinates{chans(chan)};
-                [EEG.chanlocs(chan).sph_radius str] = strtok(str, ','); EEG.chanlocs(chan).sph_radius = str2num(EEG.chanlocs(chan).sph_radius);
-                [theta                         str] = strtok(str, ','); theta = str2num(theta);
-                [phi                           str] = strtok(str, ','); phi   = str2num(phi);
-            end;
+                [EEG.chanlocs(chan).sph_radius, str] = strtok(str, ','); EEG.chanlocs(chan).sph_radius = str2num(EEG.chanlocs(chan).sph_radius);
+                [theta,                         str] = strtok(str, ','); theta = str2num(theta);
+                [phi,                           str] = strtok(str, ','); phi   = str2num(phi);
+            end
             if EEG.chanlocs(chan).sph_radius == 0 && theta == 0 && phi == 0
                 EEG.chanlocs(chan).sph_radius = [];
                 EEG.chanlocs(chan).sph_theta = [];
@@ -159,13 +159,13 @@ if isfield(hdr, 'coordinates')
                 EEG.chanlocs(chan).sph_theta = phi - 90 * sign(theta);
                 EEG.chanlocs(chan).sph_phi = -abs(theta) + 90;
             end
-        end;
+        end
     end
-    try,
+    try
         if onenon0channel
             [EEG.chanlocs, EEG.chaninfo] = pop_chanedit(EEG.chanlocs, 'convert', 'sph2topo');
             [EEG.chanlocs, EEG.chaninfo] = pop_chanedit(EEG.chanlocs, 'convert', 'sph2cart');
-        end;
+        end
     catch, end
 end
 
@@ -176,8 +176,17 @@ disp('pop_loadbv(): reading EEG data');
 if IN == -1
     [IN, message] = fopen(fullfile(path, lower(hdr.commoninfos.datafile)));
     if IN == -1
-        error(message)
-    end;
+        hdr.commoninfos.datafile = [ hdrfile(1:end-4) 'eeg' ];
+        fprintf(2, 'The header file points to a binary file that does not exist\n');
+        fprintf(2, 'trying to open a binary file with the same name as the header\nfile and a different extension...\n');
+        [IN, message] = fopen(fullfile(path, hdr.commoninfos.datafile), 'r');
+        if IN == -1
+            [IN, message] = fopen(fullfile(path, lower(hdr.commoninfos.datafile)));
+            if IN == -1
+                error(message)
+            end
+        end
+    end
 end
 if isfield( hdr.commoninfos, 'datapoints' ) && ~isempty( hdr.commoninfos.datapoints ) && isnumeric( str2double( hdr.commoninfos.datapoints ) ) && str2double( hdr.commoninfos.datapoints ) > 0
     hdr.commoninfos.datapoints = str2double(hdr.commoninfos.datapoints);
@@ -347,16 +356,19 @@ if exist('chanlocs', 'var') && isfield(chanlocs, 'scale')
     for chan = 1:EEG.nbchan
         if ~isnan(chanlocs(chan).scale)
             EEG.data(chan, :) = EEG.data(chan, :) * chanlocs(chan).scale;
-        end;
+        end
     end
 end
 
 % Marker file
 if isfield(hdr.commoninfos, 'markerfile')
     disp('pop_loadbv(): reading marker file');
-    MRK = readbvconf(path, hdr.commoninfos.markerfile);
-
-    if hdr.commoninfos.datafile ~= MRK.commoninfos.datafile
+    try 
+        MRK = readbvconf(path, hdr.commoninfos.markerfile);
+    catch
+        MRK = readbvconf(path, [hdrfile(1:end-4) 'vmrk' ]);
+    end
+    if ~isequal(hdr.commoninfos.datafile, MRK.commoninfos.datafile)
         disp('pop_loadbv() warning: data files in header and marker files inconsistent.');
     end
 
@@ -368,7 +380,7 @@ if isfield(hdr.commoninfos, 'markerfile')
         tmpevent = EEG.event;
         for index = 1:length(EEG.event)
             tmpevent(index).latency = tmpevent(index).latency - srange(1) + 1;
-        end;
+        end
         EEG.event = tmpevent;
 
         % Remove unreferenced events
@@ -406,7 +418,7 @@ if isfield(hdr.commoninfos, 'markerfile')
         else
             for index = 1:length(boundaries)
                 EEG.event(boundaries(index)).duration = NaN;
-            end;
+            end
         end
     end
 end
