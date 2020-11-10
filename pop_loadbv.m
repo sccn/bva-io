@@ -194,7 +194,7 @@ elseif strcmpi( hdr.commoninfos.dataformat, 'binary' )
     fseek( IN, 0, 'eof' );
     hdr.commoninfos.datapoints = ftell( IN ) / ( hdr.commoninfos.numberofchannels * bps );
     if round(hdr.commoninfos.datapoints) ~= hdr.commoninfos.datapoints
-        disp('Binary file has been truncated');
+        fprintf(2, 'Binary file is truncated/incomplete\n');
         hdr.commoninfos.datapoints = floor(hdr.commoninfos.datapoints);
     end
     fseek( IN, 0, 'bof' );
