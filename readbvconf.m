@@ -38,6 +38,7 @@ if nargin < 2
 end
 
 % Open and read file
+fprintf('Reading file: %s\n', fullfile(pathname, filename));
 [IN, message] = fopen(fullfile(pathname, filename), 'r');
 if IN == -1
     [IN, message] = fopen(fullfile(pathname, lower(filename)));
@@ -112,3 +113,5 @@ if strcmp( ext, '.ahdr' )
     CONF.coordinates(ahdrChan) = { '0,0,0' };
     
 end
+
+disp('Done.')
