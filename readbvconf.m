@@ -62,6 +62,26 @@ fclose(fid);
 raw = raw{1};
 raw(strmatch(';', raw)) = []; % remove comments
 
+% Open and read file
+fprintf('Reading file: %s\n', fullfile(pathname, filename));
+[IN, message] = fopen(fullfile(pathname, filename), 'r');
+if IN == -1
+    [IN, message] = fopen(fullfile(pathname, lower(filename)));
+    if IN == -1
+        error(message)
+    end;
+end
+raw={};
+while ~feof(IN)
+    raw = [raw; {fgetl(IN)}];
+end
+fclose(IN);
+
+% Remove comments and empty lines
+raw(strmatch(';', raw)) = [];
+raw(cellfun('isempty', raw) == true) = [];
+>>>>>>> 88291f622431dfab8016629ce6ec52b7a4864053
+
 % Find sections
 sectionArray = [strmatch('[', raw)' length(raw) + 1];
 for iSection = 1:length(sectionArray) - 1
@@ -126,3 +146,22 @@ for iSection = 1:length(sectionArray) - 1
             fprintf('Unrecognized entry: %s\n', fieldName);
     end
 end
+
+% Handle ahdr file type exceptions
+[ ~, ~, ext ] = fileparts( filename );
+if strcmp( ext, '.ahdr' )
+    
+    if ~isfield( CONF.commoninfos, 'numberofchannels' )
+        error( 'Common infos field numberofchannels required.' )
+    else
+        ahdrChan = str2double( CONF.commoninfos.numberofchannels ) + 1;
+        CONF.commoninfos.numberofchannels = num2str( ahdrChan );
+    end
+    
+    CONF.channelinfos(ahdrChan) = { 'test,,1,mV' };
+    
+    CONF.coordinates(ahdrChan) = { '0,0,0' };
+    
+end
+
+disp('Done.')
