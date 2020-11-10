@@ -71,11 +71,10 @@ for iSection = 1:length(sectionArray) - 1
         case {'commoninfos' 'binaryinfos' 'asciiinfos'}
             for line = sectionArray(iSection) + 1:sectionArray(iSection + 1) - 1
                 splitArray = strfind(raw{line}, '=');
-                if ~isvarname( lower(raw{line}(1:splitArray(1) - 1)) )
-                    warning( [ 'Non-standard-conforming line ''' raw{ line } ''' found. Skipping. Please report to author of exporting software.' ] )
-                else
-                    CONF.(fieldName).(lower(raw{line}(1:splitArray(1) - 1))) = raw{line}(splitArray(1) + 1:end);
-                end
+                fieldName2  = lower(raw{line}(1:splitArray(1) - 1));
+                fieldName2(fieldName2 == ' ') = '_';
+                fieldName2(fieldName2 == ':') = '_';
+                CONF.(fieldName).(fieldName2) = raw{line}(splitArray(1) + 1:end);
             end
         case {'channelinfos' 'coordinates'}
             for line = sectionArray(iSection) + 1:sectionArray(iSection + 1) - 1
@@ -87,8 +86,12 @@ for iSection = 1:length(sectionArray) - 1
                 splitArray = strfind(raw{line}, '=');
                 CONF.(fieldName)(line - sectionArray(iSection), :) = {raw{line}(splitArray(1) + 1:end) str2double(raw{line}(3:splitArray(1) - 1))};
             end
-            if ~all(1:size(CONF.(fieldName), 1) == [CONF.(fieldName){:, 2}])
-                warning('Marker number discontinuity.')
+            if ~isfield(CONF, 'fieldName')
+                disp('No event found');
+            else
+                if ~all(1:size(CONF.(fieldName), 1) == [CONF.(fieldName){:, 2}])
+                    warning('Marker number discontinuity.')
+                end
             end
         case 'comment'
             CONF.(fieldName) = raw(sectionArray(iSection) + 1:sectionArray(iSection + 1) - 1);
