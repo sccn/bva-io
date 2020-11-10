@@ -193,6 +193,10 @@ if isfield( hdr.commoninfos, 'datapoints' ) && ~isempty( hdr.commoninfos.datapoi
 elseif strcmpi( hdr.commoninfos.dataformat, 'binary' )
     fseek( IN, 0, 'eof' );
     hdr.commoninfos.datapoints = ftell( IN ) / ( hdr.commoninfos.numberofchannels * bps );
+    if round(hdr.commoninfos.datapoints) ~= hdr.commoninfos.datapoints
+        disp('Binary file has been truncated');
+        hdr.commoninfos.datapoints = floor(hdr.commoninfos.datapoints);
+    end
     fseek( IN, 0, 'bof' );
 else
     hdr.commoninfos.datapoints = NaN;
