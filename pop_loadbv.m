@@ -16,6 +16,8 @@
 %               default: all)
 %   chans     - vector channels channels to read (e.g., [1:2 4];
 %               default: all)
+%   metadata  - [true|false] when true, only read meta data. Default
+%               false
 %
 % Outputs:
 %   EEG       - EEGLAB EEG structure
@@ -53,11 +55,13 @@
 % Revision 1.5 2010/03/23 21:19:52 roy
 % added some lines so that the function can deal with the space lines in the ASCII multiplexed data file
 
-function [EEG, com] = pop_loadbv(path, hdrfile, srange, chans)
+function [EEG, com] = pop_loadbv(path, hdrfile, srange, chans, metadata)
 
 com = '';
 EEG = [];
-
+if nargin < 5
+    metadata = false;
+end
 if nargin < 2
     [hdrfile, path] = uigetfile2('*.vhdr', 'Select Brain Vision vhdr-file - pop_loadbv()');
     if hdrfile(1) == 0, return; end
@@ -102,10 +106,7 @@ if strcmpi(hdr.commoninfos.dataformat, 'binary')
 end
 
 % Channel Infos
-if ~exist('chans', 'var')
-    chans = 1:hdr.commoninfos.numberofchannels;
-    EEG.nbchan = hdr.commoninfos.numberofchannels;
-elseif isempty(chans)
+if ~exist('chans', 'var') || isempty(chans)
     chans = 1:hdr.commoninfos.numberofchannels;
     EEG.nbchan = hdr.commoninfos.numberofchannels;
 else
@@ -232,7 +233,9 @@ if any(srange < 1) || any(srange > hdr.commoninfos.datapoints)
 end
 
 % Read data
-if strcmpi(hdr.commoninfos.dataformat, 'binary')
+if metadata
+    EEG.data = [];
+elseif strcmpi(hdr.commoninfos.dataformat, 'binary')
     switch lower(hdr.commoninfos.dataorientation)
         case 'multiplexed'
             if EEG.nbchan == hdr.commoninfos.numberofchannels % Read all channels
@@ -341,7 +344,6 @@ else % ASCII data
     end
 
     EEG.data = tmpdata(chans, srange(1):srange(2));
-
 end
 
 fclose(IN);
@@ -355,7 +357,7 @@ if str2double(version('-release')) < 14
 end
 
 % Scale data
-if exist('chanlocs', 'var') && isfield(chanlocs, 'scale')
+if exist('chanlocs', 'var') && isfield(chanlocs, 'scale') && ~isempty(EEG.data)
     disp('pop_loadbv(): scaling EEG data');
     for chan = 1:EEG.nbchan
         if ~isnan(chanlocs(chan).scale)

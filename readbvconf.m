@@ -128,7 +128,7 @@ for iSection = 1:length(sectionArray) - 1
 end
 
 % Handle ahdr file type exceptions
-[ ~, ~, ext ] = fileparts( filename );
+[ ~, ~, ext ] = fileparts( fullfile(pathname, filename) );
 if strcmp( ext, '.ahdr' )
     
     if ~isfield( CONF.commoninfos, 'numberofchannels' )
