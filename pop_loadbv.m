@@ -321,6 +321,9 @@ else % ASCII data
                 
             else
                 tmpdata = fscanf(IN, '%f', inf);
+                if length(tmpdata) ~= hdr.commoninfos.numberofchannels*hdr.commoninfos.datapoints
+                    error('File truncated: cannot be imported');
+                end
                 tmpdata = reshape(tmpdata, hdr.commoninfos.datapoints, hdr.commoninfos.numberofchannels)';
             end
 
@@ -335,6 +338,12 @@ else % ASCII data
                 end
             else
                 tmpdata = fscanf(IN, '%f', inf);
+                if length(tmpdata) ~=  hdr.commoninfos.numberofchannels*hdr.commoninfos.datapoints
+                    warning('File truncated');
+                    hdr.commoninfos.datapoints = floor(length(tmpdata)/hdr.commoninfos.numberofchannels);
+                    tmpdata = tmpdata(1:hdr.commoninfos.numberofchannels*hdr.commoninfos.datapoints);
+                    srange(2) = min(srange(2), hdr.commoninfos.datapoints);
+                end
                 tmpdata = reshape(tmpdata, hdr.commoninfos.numberofchannels, hdr.commoninfos.datapoints);
             end
 
