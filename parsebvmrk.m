@@ -34,7 +34,11 @@ function EVENT = parsebvmrk(MRK)
 
 for idx = 1:size(MRK.markerinfos, 1)
     [mrkType mrkDesc EVENT(idx).latency EVENT(idx).duration  EVENT(idx).channel EVENT(idx).bvtime visible] = ...
-        strread(MRK.markerinfos{idx, 1}, '%s%s%f%d%d%d%s', 'delimiter', ',');
+        strread(MRK.markerinfos{idx, 1}, '%s%s%f%d%d%s%s', 'delimiter', ',');
+    if ~isempty(EVENT(idx).bvtime)
+%         bvt=cellfun(@str2num,mat2cell(EVENT(idx).bvtime{1},1,[4,2,2,2,2,2,6]),'UniformOutput',false);
+        EVENT(idx).bvtime=datetime(EVENT(idx).bvtime{1},'InputFormat','yyyyMMddHHmmssSSSSSS');
+    end
     EVENT(idx).bvmknum = MRK.markerinfos{idx, 2};
     EVENT( idx ).visible = char( visible );
 
