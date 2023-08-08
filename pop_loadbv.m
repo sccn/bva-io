@@ -381,7 +381,13 @@ if isfield(hdr.commoninfos, 'markerfile')
     try 
         MRK = readbvconf(path, hdr.commoninfos.markerfile);
     catch
-        MRK = readbvconf(path, [hdrfile(1:end-4) 'vmrk' ]);
+        try
+            MRK = readbvconf(path, [hdrfile(1:end-4) 'vmrk' ]);
+        catch
+            fprintf(2, 'Warning: unable to find and import marker file defined in the header file\n')
+            fprintf(2, '         (there will be no events associated with the data)\n')
+            MRK = [];
+        end
     end
     if ~isequal(hdr.commoninfos.datafile, MRK.commoninfos.datafile)
         disp('pop_loadbv() warning: data files in header and marker files inconsistent.');

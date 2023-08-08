@@ -34,7 +34,7 @@
 
 function vers = eegplugin_bva_io(fig, trystrs, catchstrs)
 
-    vers = 'bva_io1.71';
+    vers = 'bva_io1.72';
     if nargin < 3
         error('eegplugin_bva_io requires 3 arguments');
     end;
