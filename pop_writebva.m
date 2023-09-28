@@ -2,11 +2,17 @@
 % 
 % Usage:
 %   >> EEG = pop_writebva(EEG);   % a window pops up
-%   >> EEG = pop_writebva(EEG, filename);
+%   >> EEG = pop_writebva(EEG, filename, 'key', val);
 %
 % Inputs:
 %   EEG            - eeglab dataset
 %   filename       - file name
+%
+% Optional input:
+%   'DataOrientation' - ['VECTORIZED'|'MULTIPLEXED'] 
+%                       Data orientation: VECTORIZED=ch1,pt1, ch1,pt2...
+%                       MULTIPLEXED=ch1,pt1, ch2,pt1 ...
+%                       default is 'VECTORIZED'
 %
 % Author: Arnaud Delorme, SCCN, INC, UCSD, 2005-
 
@@ -26,7 +32,7 @@
 % along with this program; if not, write to the Free Software
 % Foundation, Inc., 59 Temple Place, Suite 330, Boston, MA  02111-1307  USA
 
-function com = pop_writebva(EEG, filename); 
+function com = pop_writebva(EEG, filename, varargin)
 
 com = '';
 if nargin < 1 
@@ -40,8 +46,17 @@ end
 
 if nargin < 2
     [filename, filepath] = uiputfile('*', 'Output file');
-    if length( filepath ) == 0 return; end;
+    if isempty( filepath ) return; end
     filename = [ filepath filename ];
+end
+
+opt.DataOrientation = 'VECTORIZED';
+if exist('finputcheck')
+    opt = finputcheck(varargin, { 'DataOrientation' 'string' { 'VECTORIZED' 'MULTIPLEXED' } 'VECTORIZED'});
+else
+    if nargin > 2
+        error('finputcheck not found, cannot use optional parameters')
+    end
 end
 
 % remove extension if any
@@ -54,12 +69,16 @@ if ~isempty(posdot), filename = filename(1:posdot(end)-1); end
 fid1 = fopen( [ filename '.vhdr' ], 'w' );
 fid2 = fopen( [ filename '.vmrk' ], 'w' );
 fid3 = fopen( [ filename '.dat'  ], 'wb', 'ieee-le');
-[ tmppath basename ] = fileparts( filename );
+[ ~, basename ] = fileparts( filename );
 
 % write data
 % ----------
-for index = 1:EEG.nbchan
-    fwrite(fid3, EEG.data(index,:), 'float' );
+if strcmpi(opt.DataOrientation, 'VECTORIZED')
+    for index = 1:EEG.nbchan
+        fwrite(fid3, EEG.data(index,:), 'float' );
+    end
+else
+    fwrite(fid3, EEG.data(:), 'float' );
 end
 
 % write header
@@ -74,7 +93,7 @@ if ~isempty(EEG.event)
 end
 fprintf(fid1, 'DataFormat=BINARY\n');
 fprintf(fid1, '; Data orientation: VECTORIZED=ch1,pt1, ch1,pt2..., MULTIPLEXED=ch1,pt1, ch2,pt1 ...\n');
-fprintf(fid1, 'DataOrientation=VECTORIZED\n');
+fprintf(fid1, ['DataOrientation=' opt.DataOrientation '\n']);
 fprintf(fid1, 'DataType=TIMEDOMAIN\n');
 fprintf(fid1, 'NumberOfChannels=%d\n', EEG.nbchan);
 fprintf(fid1, 'DataPoints=%d\n', EEG.pnts*EEG.trials);
@@ -143,7 +162,7 @@ if ~isempty(EEG.event)
         EEG.event(end  ).latency = (index-1)*EEG.pnts+1;
     end
     tmpevent = EEG.event;
-    [tmp latorder ] = sort( [ tmpevent.latency ] );
+    [~, latorder ] = sort( [ tmpevent.latency ] );
     EEG.event = EEG.event(latorder);
     tmpevent = tmpevent( latorder );
 
@@ -165,7 +184,7 @@ if ~isempty(EEG.event)
     for index = 1:length(EEG.event)
         if mod( EEG.event(index).latency, EEG.pnts) == -EEG.xmin*EEG.srate+1
             time0ind = [ time0ind index ];
-        end;
+        end
     end
     for index = length(time0ind):-1:1
         EEG.event(time0ind(index)+1:end+1) = EEG.event(time0ind(index):end);
@@ -184,8 +203,9 @@ if ~isempty(EEG.event)
             if ~isempty(e(index).duration)
                 tmpdur = e(index).duration;
             else tmpdur = 0;
-            end;
-        else tmpdur = 0;
+            end
+        else 
+            tmpdur = 0;
         end
 
         % comment field
@@ -194,8 +214,9 @@ if ~isempty(EEG.event)
             if ~isempty(e(index).comment)
                 tmpcom = e(index).comment;
             else tmpcom = '';
-            end;
-        else tmpcom = num2str(e(index).type);
+            end
+        else 
+            tmpcom = num2str(e(index).type);
         end
 
         fprintf(fid2, 'Mk%d=%s,%s,%d,%d,0,0\n', index, num2str(e(index).type), num2str(tmpcom), round(e(index).latency), tmpdur);
@@ -206,4 +227,3 @@ fclose(fid2);
 fclose(fid3);
 
 com = sprintf('pop_writebva(%s,''%s'');', inputname(1), filename); 
-return;
