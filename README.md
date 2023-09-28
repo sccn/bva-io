@@ -2,6 +2,8 @@ This repository is a plugin for EEGLAB to import/export
 Brain Vision Analyzer EEG data files.
 
 # Version history
+v1.73 - Writing data now in MULTIPLEXED format as a new option
+
 v1.72 - Avoid crashing when event file is absent
 
 v1.71 - Allow to import .ahdr files
