@@ -389,7 +389,7 @@ if isfield(hdr.commoninfos, 'markerfile')
             MRK = [];
         end
     end
-    if ~isequal(hdr.commoninfos.datafile, MRK.commoninfos.datafile)
+    if ~isempty(MRK) && ~isequal(hdr.commoninfos.datafile, MRK.commoninfos.datafile)
         disp('pop_loadbv() warning: data files in header and marker files inconsistent.');
     end
 
