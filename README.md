@@ -1,3 +1,5 @@
+# BVA-io for Brain Vision Analyzer format
+
 This repository is a plugin for EEGLAB to import/export
 Brain Vision Analyzer EEG data files.
 
