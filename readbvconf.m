@@ -57,6 +57,11 @@ end
 
 % Open and read file (automatically remove empty lines)
 fid = fopen(fullfile(pathname, filename), 'r');
+corrupted_string = '--corrupted--';
+if strcmpi(strtrim(fileread(fullfile(pathname, filename))), corrupted_string)
+    fprintf(2, 'Cannot import marker file -- corrupted\n');
+    return;
+end
 raw = textscan(fid, '%s', 'delimiter', '');
 fclose(fid);
 raw = raw{1};
