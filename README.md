@@ -4,6 +4,8 @@ This repository is a plugin for EEGLAB to import/export
 Brain Vision Analyzer EEG data files.
 
 # Version history
+v1.74 - Avoid crashing when marker file is empty
+
 v1.73 - Writing data now in MULTIPLEXED format as a new option; show warning when VMRK file is missing
 
 v1.72 - Avoid crashing when event file is absent
