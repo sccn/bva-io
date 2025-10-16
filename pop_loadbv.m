@@ -394,7 +394,7 @@ if isfield(hdr.commoninfos, 'markerfile')
     end
 
     % Marker infos
-    if isfield(MRK, 'markerinfos')
+     if isfield(MRK, 'markerinfos') && ~isempty(MRK.markerinfos)
         EEG.event = parsebvmrk(MRK);
 
         % Correct event latencies by first sample offset
