@@ -61,8 +61,8 @@ end
 
 % remove extension if any
 % -----------------------
-posdot = find(filename == '.');
-if ~isempty(posdot), filename = filename(1:posdot(end)-1); end
+[pathstr, name, ext] = fileparts(filename);
+filename = fullfile(pathstr, name);
 
 % open output file
 % ----------------
